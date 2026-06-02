@@ -26,7 +26,6 @@ def normalize_date_column(df: pd.DataFrame, file_name: str) -> pd.DataFrame:
         invalid_count = df["date"].isna().sum()
         raise ValueError(f"{file_name} contains {invalid_count} invalid date values")
 
-    df["date"] = df["date"].dt.date
     return df
 
 
@@ -37,23 +36,31 @@ def validate_unique_dates(df: pd.DataFrame, file_name: str) -> None:
         raise ValueError(f"{file_name} contains {duplicate_count} duplicate date rows")
 
 
-def create_fire_lag_features(df: pd.DataFrame) -> pd.DataFrame:
+def create_v7_style_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df = df.sort_values("date").reset_index(drop=True)
 
-    if "fire_pressure" not in df.columns:
-        raise ValueError("'fire_pressure' column is missing from merged dataset")
+    df["pm25_lag1"] = df["pm25"].shift(1)
+    df["pm25_lag2"] = df["pm25"].shift(2)
+    df["pm25_lag3"] = df["pm25"].shift(3)
+    df["pm25_3day_avg"] = df[["pm25_lag1", "pm25_lag2", "pm25_lag3"]].mean(axis=1)
 
     df["fire_pressure_lag1"] = df["fire_pressure"].shift(1)
     df["fire_pressure_lag2"] = df["fire_pressure"].shift(2)
     df["fire_pressure_lag3"] = df["fire_pressure"].shift(3)
+    df["fire_pressure_3day_avg"] = df[
+        ["fire_pressure_lag1", "fire_pressure_lag2", "fire_pressure_lag3"]
+    ].mean(axis=1)
+
+    df["month"] = df["date"].dt.month
+    df["is_burning_season"] = df["month"].isin([1, 2, 3, 4]).astype(int)
 
     return df
 
 
 def main() -> None:
     print("=" * 80)
-    print("Building final PM2.5 training dataset")
+    print("Building compact v7-style PM2.5 training dataset")
     print("=" * 80)
 
     validate_file_exists(PM25_WEATHER_PATH)
@@ -68,9 +75,6 @@ def main() -> None:
     validate_unique_dates(pm25_weather_df, "PM2.5/weather dataset")
     validate_unique_dates(firms_df, "FIRMS daily features dataset")
 
-    print(f"PM2.5/weather shape: {pm25_weather_df.shape}")
-    print(f"FIRMS daily shape: {firms_df.shape}")
-
     merged_df = pm25_weather_df.merge(
         firms_df,
         on="date",
@@ -82,6 +86,7 @@ def main() -> None:
         "fire_count",
         "fire_avg_confidence",
         "fire_avg_brightness",
+        "fire_avg_frp",
         "fire_min_distance_km",
         "fire_pressure",
     ]
@@ -90,29 +95,62 @@ def main() -> None:
         if column in merged_df.columns:
             merged_df[column] = merged_df[column].fillna(0)
 
-    merged_df = create_fire_lag_features(merged_df)
+    merged_df = create_v7_style_features(merged_df)
 
-    before_drop = len(merged_df)
-    merged_df = merged_df.dropna().reset_index(drop=True)
-    after_drop = len(merged_df)
+    selected_columns = [
+        "date",
+        "pressure_avg",
+        "temperature_avg",
+        "humidity_avg",
+        "precipitation",
+        "sunshine",
+        "wind_direction",
+        "wind_speed",
+        "pm25_lag1",
+        "pm25_lag2",
+        "pm25_lag3",
+        "pm25_3day_avg",
+        "fire_count",
+        "fire_pressure",
+        "fire_pressure_lag1",
+        "fire_pressure_lag2",
+        "fire_pressure_3day_avg",
+        "month",
+        "is_burning_season",
+        "pm25",
+    ]
+
+    missing_columns = [
+        column for column in selected_columns if column not in merged_df.columns
+    ]
+
+    if missing_columns:
+        raise ValueError(f"Missing selected columns: {missing_columns}")
+
+    final_df = merged_df[selected_columns].copy()
+
+    before_drop = len(final_df)
+    final_df = final_df.dropna().reset_index(drop=True)
+    after_drop = len(final_df)
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    merged_df.to_csv(OUTPUT_PATH, index=False)
+    final_df.to_csv(OUTPUT_PATH, index=False)
 
-    print("\nFinal dataset created successfully")
+    print("\nCompact final dataset created successfully")
     print(f"Output: {OUTPUT_PATH}")
-    print(f"Shape: {merged_df.shape}")
+    print(f"Shape: {final_df.shape}")
+    print(f"Feature count: {len(selected_columns) - 2}")
     print(f"Rows dropped due to lag features: {before_drop - after_drop}")
-    print(f"Date range: {merged_df['date'].min()} to {merged_df['date'].max()}")
-    print(f"Missing values: {merged_df.isna().sum().sum()}")
-    print(f"Duplicate dates: {merged_df['date'].duplicated().sum()}")
+    print(f"Date range: {final_df['date'].min().date()} to {final_df['date'].max().date()}")
+    print(f"Missing values: {final_df.isna().sum().sum()}")
+    print(f"Duplicate dates: {final_df['date'].duplicated().sum()}")
 
     print("\nColumns:")
-    for column in merged_df.columns:
+    for column in final_df.columns:
         print(f"- {column}")
 
     print("\nPreview:")
-    print(merged_df.head())
+    print(final_df.head())
 
 
 if __name__ == "__main__":
