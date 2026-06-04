@@ -1032,8 +1032,7 @@ def generate_llm_warning(language: str, current_pred: float, max_pred: float, st
 
     try:
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-3.1-flash-lite")
-
+        
         prompt = f"""
 You are an environmental health advisory assistant for Mae Fah Luang University (MFU) in Chiang Rai, Thailand.
 
@@ -1069,11 +1068,32 @@ Rules:
 - Do not exaggerate.
 - Keep it concise and easy to read.
 """
-        response = model.generate_content(prompt)
-        return response.text or "AI advisory could not be generated. Please try again."
+        # --- 🛡️ FALLBACK MECHANISM ---
+        # List models in order of priority (fastest/cheapest first, followed by more capable/older stable ones)
+        fallback_models = [
+            "gemini-3.1-flash-lite", 
+            "gemini-3.5-flash",
+            "gemini-3-flash",
+            "gemini-2.5-flash"
+        ]
+
+        last_error = None
+        for model_name in fallback_models:
+            try:
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(prompt)
+                if response.text:
+                    return response.text
+            except Exception as e:
+                # If current model fails, record the error and continue to the next model in the list
+                last_error = e
+                continue
+
+        # If ALL models in the list fail, only then return the error message
+        return f"AI_ERROR::AI generation failed across all fallback models. Last error: {last_error}"
 
     except Exception as exc:
-        return f"AI_ERROR::AI generation failed: {exc}"
+        return f"AI_ERROR::System error during AI generation setup: {exc}"
 
 
 
@@ -1181,7 +1201,7 @@ else:
 tab1, tab2, tab3, tab4 = st.tabs(
     [
         "🗺️ Prediction & Map",
-        "🤖 LLM Warning",
+        "🤖 AI Advisory(Gemini)",
         "📊 Charts & Graphs",
         "🔬 Model Overview",
     ]
