@@ -10,13 +10,18 @@ Default input:
 
 Default outputs:
     reports/ablation/ablation_metrics.csv
+    reports/ablation/ablation_summary.csv
     reports/ablation/test_predictions.csv
     reports/ablation/experiment_config.json
+    reports/ablation/ablation_mae_comparison.png
+    reports/ablation/ablation_rmse_comparison.png
+    reports/ablation/high_pm25_predictions.png
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.metadata
 import json
 import platform
@@ -75,8 +80,13 @@ FIRE_FEATURES = [
 @dataclass(frozen=True)
 class ExperimentConfig:
     dataset: str
+    dataset_sha256: str
+    dataset_rows: int
+    dataset_period: str
     output_directory: str
     test_year: int
+    training_rows: int
+    testing_rows: int
     training_rule: str
     test_rule: str
     target: str
@@ -291,11 +301,164 @@ def build_ablation_summary(metrics_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_environment_versions() -> dict[str, str]:
-    package_names = ["numpy", "pandas", "scikit-learn", "lightgbm", "xgboost"]
+    package_names = [
+        "numpy",
+        "pandas",
+        "scikit-learn",
+        "lightgbm",
+        "xgboost",
+        "matplotlib",
+    ]
     versions = {"python": platform.python_version()}
     for package_name in package_names:
-        versions[package_name] = importlib.metadata.version(package_name)
+        try:
+            versions[package_name] = importlib.metadata.version(package_name)
+        except importlib.metadata.PackageNotFoundError:
+            versions[package_name] = "not installed"
     return versions
+
+
+def portable_path(path: Path) -> str:
+    """Use a repository-relative path when the path is inside the project."""
+    try:
+        return path.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def sha256_file(path: Path) -> str:
+    """Return a stable fingerprint so the exact experiment dataset is known."""
+    digest = hashlib.sha256()
+    with path.open("rb") as file:
+        for block in iter(lambda: file.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def import_pyplot():
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        raise RuntimeError(
+            "Chart generation requires matplotlib. Install it with: "
+            "python -m pip install matplotlib"
+        ) from exc
+    return plt
+
+
+def save_comparison_chart(
+    metrics_df: pd.DataFrame,
+    metric: str,
+    output_path: Path,
+) -> None:
+    """Save a report-ready weather-only versus fire-feature comparison."""
+    plt = import_pyplot()
+    scope_order = ["full_test_year", "burning_season", "high_pm25_days"]
+    scope_labels = ["Full test year", "Burning season", "High-PM2.5 days"]
+    algorithms = ["lightgbm", "xgboost"]
+    colors = {"weather_only": "#9CA3AF", "weather_plus_fire": "#E4572E"}
+    labels = {"weather_only": "Weather only", "weather_plus_fire": "Weather + fire"}
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.8), sharey=False)
+    positions = np.arange(len(scope_order))
+    width = 0.36
+
+    for axis, algorithm in zip(axes, algorithms):
+        algorithm_rows = metrics_df[metrics_df["algorithm"] == algorithm]
+        for offset, variant in zip((-width / 2, width / 2), colors):
+            variant_rows = algorithm_rows[
+                algorithm_rows["variant"] == variant
+            ].set_index("scope")
+            values = [variant_rows.loc[scope, metric] for scope in scope_order]
+            bars = axis.bar(
+                positions + offset,
+                values,
+                width,
+                label=labels[variant],
+                color=colors[variant],
+            )
+            axis.bar_label(bars, fmt="%.2f", padding=3, fontsize=8)
+
+        axis.set_title(algorithm.upper())
+        axis.set_xticks(positions, scope_labels, rotation=15, ha="right")
+        axis.set_ylabel(f"{metric.upper()} (µg/m³; lower is better)")
+        axis.grid(axis="y", alpha=0.25)
+        axis.set_axisbelow(True)
+
+    handles, legend_labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles,
+        legend_labels,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.91),
+        ncol=2,
+        frameon=False,
+    )
+    fig.suptitle(
+        f"PM2.5 Ablation Study: {metric.upper()} Comparison",
+        fontsize=14,
+        fontweight="bold",
+        y=0.99,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.84))
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
+def save_high_pm25_chart(predictions_df: pd.DataFrame, output_path: Path) -> None:
+    """Visualize predictions on the high-pollution evaluation subset."""
+    plt = import_pyplot()
+    high_days = predictions_df[
+        predictions_df[TARGET_COLUMN] > HIGH_PM25_THRESHOLD
+    ].sort_values(DATE_COLUMN)
+    x = np.arange(len(high_days))
+
+    fig, axes = plt.subplots(2, 1, figsize=(12, 7), sharex=True, sharey=True)
+    for axis, algorithm in zip(axes, ("lightgbm", "xgboost")):
+        axis.plot(
+            x,
+            high_days[TARGET_COLUMN],
+            marker="o",
+            linewidth=2,
+            color="#111827",
+            label="Actual PM2.5",
+        )
+        axis.plot(
+            x,
+            high_days[f"{algorithm}_weather_only"],
+            marker="s",
+            linewidth=1.5,
+            color="#9CA3AF",
+            label="Weather only",
+        )
+        axis.plot(
+            x,
+            high_days[f"{algorithm}_weather_plus_fire"],
+            marker="^",
+            linewidth=1.5,
+            color="#E4572E",
+            label="Weather + fire",
+        )
+        axis.set_title(algorithm.upper())
+        axis.set_ylabel("PM2.5 (µg/m³)")
+        axis.grid(alpha=0.25)
+        axis.legend(frameon=False, ncol=3)
+
+    axes[-1].set_xticks(
+        x,
+        high_days[DATE_COLUMN].dt.strftime("%d %b").tolist(),
+        rotation=55,
+        ha="right",
+    )
+    axes[-1].set_xlabel("2022 high-PM2.5 test days (actual PM2.5 > 50 µg/m³)")
+    fig.suptitle(
+        "Predictions During High-Pollution Conditions",
+        fontsize=14,
+        fontweight="bold",
+    )
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
 
 
 def save_outputs(
@@ -312,6 +475,21 @@ def save_outputs(
 
     with (output_dir / "experiment_config.json").open("w", encoding="utf-8") as file:
         json.dump(asdict(config), file, indent=2)
+
+    save_comparison_chart(
+        metrics_df,
+        "mae",
+        output_dir / "ablation_mae_comparison.png",
+    )
+    save_comparison_chart(
+        metrics_df,
+        "rmse",
+        output_dir / "ablation_rmse_comparison.png",
+    )
+    save_high_pm25_chart(
+        predictions_df,
+        output_dir / "high_pm25_predictions.png",
+    )
 
 
 def print_summary(
@@ -380,9 +558,17 @@ def main() -> None:
     ablation_summary_df = build_ablation_summary(metrics_df)
 
     config = ExperimentConfig(
-        dataset=str(dataset_path),
-        output_directory=str(output_dir),
+        dataset=portable_path(dataset_path),
+        dataset_sha256=sha256_file(dataset_path),
+        dataset_rows=len(dataset),
+        dataset_period=(
+            f"{dataset[DATE_COLUMN].min().date()} to "
+            f"{dataset[DATE_COLUMN].max().date()}"
+        ),
+        output_directory=portable_path(output_dir),
         test_year=args.test_year,
+        training_rows=len(train_df),
+        testing_rows=len(test_df),
         training_rule=f"date year < {args.test_year}",
         test_rule=f"date year == {args.test_year}",
         target=TARGET_COLUMN,

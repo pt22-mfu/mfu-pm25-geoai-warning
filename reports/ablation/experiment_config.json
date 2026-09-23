@@ -1,0 +1,53 @@
+{
+  "dataset": "data/final/pm25_training_dataset_2018_2022.csv",
+  "dataset_sha256": "52edb029a5cb5a8d0baee9e14a822339dbbbf72b9ec5b7a9760f946601b7903f",
+  "dataset_rows": 1820,
+  "dataset_period": "2018-01-07 to 2022-12-31",
+  "output_directory": "reports/ablation",
+  "test_year": 2022,
+  "training_rows": 1455,
+  "testing_rows": 365,
+  "training_rule": "date year < 2022",
+  "test_rule": "date year == 2022",
+  "target": "pm25",
+  "target_transformation": "log1p for training; expm1 for evaluation",
+  "burning_season_months": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "high_pm25_threshold": 50.0,
+  "random_state": 42,
+  "weather_features": [
+    "pressure_avg",
+    "temperature_avg",
+    "humidity_avg",
+    "precipitation",
+    "sunshine",
+    "wind_direction",
+    "wind_speed",
+    "pm25_lag1",
+    "pm25_lag2",
+    "pm25_lag3",
+    "pm25_3day_avg",
+    "month",
+    "is_burning_season"
+  ],
+  "fire_features": [
+    "fire_count",
+    "fire_pressure",
+    "fire_pressure_lag1",
+    "fire_pressure_lag2",
+    "fire_pressure_3day_avg"
+  ],
+  "environment": {
+    "python": "3.13.2",
+    "numpy": "2.4.1",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.8.0",
+    "lightgbm": "4.6.0",
+    "xgboost": "3.2.0",
+    "matplotlib": "3.10.8"
+  }
+}
