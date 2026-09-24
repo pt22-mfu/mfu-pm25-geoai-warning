@@ -3,8 +3,10 @@ import math
 import json
 import base64
 import textwrap
+import html
 from io import StringIO
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import joblib
 import numpy as np
@@ -204,37 +206,368 @@ div.stButton > button:first-child:hover {{
     border-top: 5px solid #94a3b8;
 }}
 
-.header-wrap {{
+.model-comparison-intro {{
+    margin: 34px 0 30px 0;
+    padding: 0 6px;
+}}
+
+.model-comparison-intro h2 {{
+    margin: 0 0 10px 0;
+    padding: 0;
+    color: #111a2e;
+    font-size: 1.55rem;
+    font-weight: 750;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+}}
+
+.model-comparison-intro p {{
+    margin: 0;
+    padding: 0;
+    color: #526176;
+    font-size: 0.96rem;
+    font-weight: 500;
+    line-height: 1.55;
+    max-width: 850px;
+}}
+
+.chart-analysis-intro {{
+    margin: 34px 0 0 0;
+    padding: 0 6px;
+}}
+
+.chart-analysis-intro h2 {{
+    margin: 0 0 10px 0;
+    padding: 0;
+    color: #111a2e;
+    font-size: 1.55rem;
+    font-weight: 750;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+}}
+
+.chart-analysis-intro p {{
+    margin: 0;
+    padding: 0;
+    color: #526176;
+    font-size: 0.96rem;
+    font-weight: 500;
+    line-height: 1.55;
+    max-width: 950px;
+}}
+
+.system-methodology-intro {{
+    margin: 34px 0 0 0;
+    padding: 0 6px;
+}}
+
+.system-methodology-intro h2 {{
+    margin: 0 0 10px 0;
+    padding: 0;
+    color: #111a2e;
+    font-size: 1.55rem;
+    font-weight: 750;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+}}
+
+.system-methodology-intro p {{
+    margin: 0;
+    padding: 0;
+    color: #526176;
+    font-size: 0.96rem;
+    font-weight: 500;
+    line-height: 1.55;
+    max-width: 950px;
+}}
+
+.system-section-heading {{
+    margin: 28px 0 12px 0;
+    padding: 0 4px;
+}}
+
+.system-section-heading h3 {{
+    margin: 0 0 6px 0;
+    padding: 0;
+    color: #111a2e;
+    font-size: 1.22rem;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+}}
+
+.system-section-heading p {{
+    margin: 0;
+    padding: 0;
+    color: #526176;
+    font-size: 0.93rem;
+    line-height: 1.55;
+}}
+
+.pipeline-grid {{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin: 16px 0 24px 0;
+}}
+
+@media (max-width: 900px) {{
+    .pipeline-grid {{
+        grid-template-columns: 1fr;
+    }}
+}}
+
+.pipeline-card {{
+    background: #ffffff;
+    border: 1px solid #d7e0ea;
+    border-radius: 14px;
+    padding: 22px 22px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}}
+
+.pipeline-card h4 {{
+    margin: 0 0 14px 0;
+    font-size: 1.05rem;
+    font-weight: 750;
+    color: #0f172a;
+    border-bottom: 2px solid #1e3a8a;
+    padding-bottom: 8px;
+}}
+
+.pipeline-step {{
+    padding: 8px 0;
+}}
+
+.pipeline-step-header {{
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 3px;
+}}
+
+.pipeline-step-desc {{
+    font-size: 0.87rem;
+    color: #475569;
+    line-height: 1.5;
+}}
+
+.pipeline-step-arrow {{
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1;
+    margin: 4px 0;
+}}
+
+.methodology-table-container {{
+    width: 100%;
+    overflow-x: auto;
+    margin: 14px 0 24px 0;
+    border: 1px solid #d7e0ea;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}}
+
+.methodology-table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    text-align: left;
+}}
+
+.methodology-table th {{
+    background: #f8fafc;
+    color: #334155;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    border-bottom: 1px solid #d7e0ea;
+    white-space: nowrap;
+}}
+
+.methodology-table td {{
+    color: #1e293b;
+    padding: 11px 16px;
+    border-bottom: 1px solid #edf2f7;
+    line-height: 1.5;
+    vertical-align: top;
+}}
+
+.methodology-table tr:last-child td {{
+    border-bottom: none;
+}}
+
+.methodology-code {{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.82rem;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 6px;
+    border-radius: 5px;
+    border: 1px solid #e2e8f0;
+    display: inline-block;
+    word-break: break-word;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpander"] details {{
+    background: #ffffff !important;
+    border: 1px solid #d7e0ea !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpander"] summary {{
+    background: #ffffff !important;
+    color: #172033 !important;
+    border: 0 !important;
+    padding: 0.9rem 1rem !important;
+    transition: background-color 0.15s ease !important;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpander"] summary:hover {{
+    background: #f8fafc !important;
+    color: #111a2e !important;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpander"] details[open] > summary {{
+    background: #f1f5f9 !important;
+    color: #111a2e !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpander"] summary p,
+.st-key-methodology_notes_expanders div[data-testid="stExpander"] summary span {{
+    color: #172033 !important;
+    font-weight: 650 !important;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpander"] summary svg {{
+    color: #475569 !important;
+    fill: #475569 !important;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpanderDetails"] {{
+    background: #ffffff !important;
+    color: #263449 !important;
+    padding: 0.25rem 1rem 1rem 1rem !important;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpanderDetails"] p {{
+    color: #263449 !important;
+    line-height: 1.7 !important;
+}}
+
+.st-key-methodology_notes_expanders div[data-testid="stExpander"] {{
+    margin-bottom: 10px !important;
+}}
+
+.analysis-section-divider {{
+    width: 100%;
+    height: 1px;
+    margin: 22px 0 30px 0;
+    border: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(148, 163, 184, 0) 0%,
+        rgba(148, 163, 184, 0.42) 10%,
+        rgba(148, 163, 184, 0.42) 90%,
+        rgba(148, 163, 184, 0) 100%
+    );
+}}
+
+.chart-row-divider {{
+    width: 100%;
+    height: 1px;
+    margin: 30px 0 26px 0;
+    border: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(148, 163, 184, 0) 0%,
+        rgba(148, 163, 184, 0.32) 12%,
+        rgba(148, 163, 184, 0.32) 88%,
+        rgba(148, 163, 184, 0) 100%
+    );
+}}
+
+.dashboard-header {{
+    width: 100%;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 22px;
-    padding: 18px 20px;
-    border: 1px solid {BORDER};
-    border-radius: 18px;
-    background: rgba(255,255,255,0.76);
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.055);
+    gap: 24px;
+    padding: 30px 36px;
+    margin: 0 0 28px 0;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #d7e0ea;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
 }}
 
-.logo-img {{
-    width: 74px;
-    height: auto;
-    filter: drop-shadow(0px 4px 8px rgba(15,23,42,0.12));
-}}
-
-.header-title {{
-    font-size: 32px;
-    font-weight: 900;
-    color: {NAVY_BLUE};
+.dashboard-header-logo {{
+    display: block;
+    width: 72px;
+    height: 72px;
+    flex: 0 0 72px;
+    object-fit: contain;
     margin: 0;
-    letter-spacing: -0.75px;
 }}
 
-.header-subtitle {{
-    font-size: 15px;
-    color: {TEXT_MUTED};
-    font-weight: 700;
-    margin: 5px 0 0 0;
+.dashboard-header-content {{
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}}
+
+.dashboard-header-content h1 {{
+    margin: 0;
+    padding: 0;
+    color: #111a2e;
+    font-size: clamp(2rem, 3.1vw, 3.15rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+}}
+
+.dashboard-header-content p {{
+    margin: 0;
+    padding: 0;
+    color: #334155;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.45;
+}}
+
+@media (max-width: 700px) {{
+    .dashboard-header {{
+        gap: 16px;
+        padding: 22px 20px;
+        border-radius: 16px;
+    }}
+
+    .dashboard-header-logo {{
+        width: 54px;
+        height: 54px;
+        flex-basis: 54px;
+    }}
+
+    .dashboard-header-content {{
+        gap: 7px;
+    }}
+
+    .dashboard-header-content h1 {{
+        font-size: clamp(1.55rem, 7vw, 2.1rem);
+        line-height: 1.12;
+    }}
+
+    .dashboard-header-content p {{
+        font-size: 0.86rem;
+        line-height: 1.45;
+    }}
 }}
 
 .section-title {{
@@ -434,13 +767,66 @@ a {{
 .advisory-shell {{
     background: #ffffff;
     border: 1px solid #dbe3ea;
-    border-radius: 18px;
-    padding: 24px 28px;
-    line-height: 1.75;
+    border-radius: 16px;
+    padding: 22px 26px;
+    line-height: 1.65;
     color: #0f172a;
-    font-size: 1rem;
-    font-weight: 650;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.055);
+    font-size: 0.97rem;
+    font-weight: 450;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}}
+
+/* Scoped: white dropdown only for the advisory language selector */
+div.st-key-advisory_language_select div[data-baseweb="select"] > div {{
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+}}
+
+div.st-key-advisory_language_select div[data-baseweb="select"] span {{
+    color: #0f172a !important;
+}}
+
+div.st-key-advisory_language_select div[data-baseweb="select"] svg {{
+    color: #475569 !important;
+    fill: #475569 !important;
+}}
+
+/* Scoped: advisory output card */
+div.st-key-advisory_output_card {{
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid #d7e0ea !important;
+    border-left: 4px solid #1e3a8a !important;
+    border-radius: 14px !important;
+    padding: 1.25rem 1.4rem !important;
+    margin-top: 1rem !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+}}
+
+div.st-key-advisory_output_card .stMarkdown {{
+    color: #172033 !important;
+    font-weight: 400 !important;
+    line-height: 1.75 !important;
+}}
+
+div.st-key-advisory_output_card .stMarkdown p {{
+    margin-bottom: 0.85rem;
+}}
+
+div.st-key-advisory_output_card .stMarkdown li {{
+    margin-bottom: 0.4rem;
+}}
+
+/* Scoped: advisory loading card */
+div.st-key-advisory_loading_card {{
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid #d7e0ea !important;
+    border-radius: 14px !important;
+    padding: 1.25rem 1.4rem !important;
+    margin-top: 1rem !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04) !important;
 }}
 
 .setup-card {{
@@ -469,7 +855,7 @@ FOOTER_HTML = f"""
     <span style="color:{ROYAL_BLUE}; font-weight:900;">The Outliers</span>
     <span> · CPE Senior Project</span>
     <span style="margin:0 10px; color:{BORDER_STRONG};">|</span>
-    <span style="color:{NAVY_BLUE}; font-weight:900;">Advisor - Aj. Khwunta Kirimasthong</span>
+    <span style="color:{NAVY_BLUE}; font-weight:900;">Advisor - Dr. Khwunta Kirimasthong</span>
 </div>
 """
 
@@ -693,6 +1079,111 @@ def normalize_history_columns(df: pd.DataFrame) -> pd.DataFrame:
     return normalized
 
 
+def aggregate_openweather_daily(
+    forecast_payload: dict,
+    latest_pm25: float,
+    current_weather: dict | None = None,
+) -> pd.DataFrame:
+    """Convert OpenWeather 3-hour records into daily model inputs.
+
+    The trained PM2.5 models use one row per day, so inference must not send
+    individual 3-hour weather records to them. Wind speed is converted from
+    OpenWeather m/s to the km/h scale used by the historical dataset. Because
+    the API does not provide observed sunshine duration, daytime cloud cover is
+    used as a bounded sunshine-hours proxy.
+    """
+    timezone_offset = int(forecast_payload.get("city", {}).get("timezone", 0))
+    rows = []
+
+    for item in forecast_payload.get("list", []):
+        local_datetime = datetime.fromtimestamp(
+            int(item["dt"]) + timezone_offset,
+            tz=timezone.utc,
+        ).replace(tzinfo=None)
+        cloud_cover = float(item.get("clouds", {}).get("all", 0))
+        is_daytime = item.get("sys", {}).get("pod") == "d"
+
+        rows.append(
+            {
+                "datetime": local_datetime,
+                "Pressure_avg": float(item["main"]["pressure"]),
+                "Temp_avg": float(item["main"]["temp"]),
+                "Humidity_avg": float(item["main"]["humidity"]),
+                "Precipitation": float(item.get("rain", {}).get("3h", 0)),
+                "Sunshine_component": (
+                    3.0 * max(0.0, 1.0 - cloud_cover / 100.0)
+                    if is_daytime
+                    else 0.0
+                ),
+                "Wind_direct": float(item["wind"].get("deg", 0)),
+                "Wind_speed": float(item["wind"]["speed"]) * 3.6,
+                "pm25_lag1": latest_pm25,
+            }
+        )
+
+    # Add the exact-location current weather observation so the first daily
+    # row represents the current-day modeled estimate rather than tomorrow.
+    if current_weather:
+        local_now = (
+            datetime.now(timezone.utc) + timedelta(seconds=timezone_offset)
+        ).replace(tzinfo=None)
+        rows.append(
+            {
+                "datetime": local_now,
+                "Pressure_avg": float(current_weather["main"]["pressure"]),
+                "Temp_avg": float(current_weather["main"]["temp"]),
+                "Humidity_avg": float(current_weather["main"]["humidity"]),
+                "Precipitation": 0.0,
+                "Sunshine_component": 0.0,
+                "Wind_direct": float(current_weather.get("wind", {}).get("deg", 0)),
+                "Wind_speed": float(current_weather.get("wind", {}).get("speed", 0))
+                * 3.6,
+                "pm25_lag1": latest_pm25,
+            }
+        )
+
+    if not rows:
+        return pd.DataFrame()
+
+    three_hourly = pd.DataFrame(rows)
+    three_hourly["forecast_date"] = three_hourly["datetime"].dt.normalize()
+
+    daily_rows = []
+    for forecast_date, day in three_hourly.groupby("forecast_date", sort=True):
+        radians = np.deg2rad(day["Wind_direct"].to_numpy())
+        circular_wind_direction = (
+            np.degrees(np.arctan2(np.sin(radians).mean(), np.cos(radians).mean()))
+            + 360
+        ) % 360
+
+        daily_rows.append(
+            {
+                "datetime": pd.Timestamp(forecast_date),
+                "Pressure_avg": float(day["Pressure_avg"].mean()),
+                "Temp_avg": float(day["Temp_avg"].mean()),
+                "Humidity_avg": float(day["Humidity_avg"].mean()),
+                "Precipitation": float(day["Precipitation"].sum()),
+                "Sunshine": float(day["Sunshine_component"].sum()),
+                "Wind_direct": float(circular_wind_direction),
+                "Wind_speed": float(day["Wind_speed"].mean()),
+                "pm25_lag1": latest_pm25,
+            }
+        )
+
+    daily = pd.DataFrame(daily_rows)
+    local_today = (
+        datetime.now(timezone.utc) + timedelta(seconds=timezone_offset)
+    ).date()
+    current_and_future = daily[
+        daily["datetime"].dt.date >= local_today
+    ].head(6).copy()
+
+    # Near midnight the API window may contain fewer than five full future
+    # dates. Retain the earliest available daily rows in that case.
+    current_and_future["Sunshine"] = current_and_future["Sunshine"].clip(0, 12.4)
+    return current_and_future.reset_index(drop=True)
+
+
 @st.cache_data(ttl=900)
 def fetch_weather_and_forecast():
     if OPENWEATHER_API_KEY == "YOUR_OPENWEATHER_KEY":
@@ -740,23 +1231,12 @@ def fetch_weather_and_forecast():
             "fetch_time": datetime.now().strftime("%d %B %Y, %I:%M %p"),
         }
 
-        forecast_rows = []
-        for item in forecast_weather.get("list", []):
-            forecast_rows.append(
-                {
-                    "datetime": datetime.fromtimestamp(item["dt"]),
-                    "Pressure_avg": float(item["main"]["pressure"]),
-                    "Temp_avg": float(item["main"]["temp"]),
-                    "Humidity_avg": float(item["main"]["humidity"]),
-                    "Precipitation": float(item.get("rain", {}).get("3h", 0)),
-                    "Sunshine": 5.0,
-                    "Wind_direct": float(item["wind"].get("deg", 0)),
-                    "Wind_speed": float(item["wind"]["speed"]),
-                    "pm25_lag1": latest_pm25,
-                }
-            )
-
-        return current, pd.DataFrame(forecast_rows)
+        daily_forecast = aggregate_openweather_daily(
+            forecast_weather,
+            latest_pm25,
+            current_weather,
+        )
+        return current, daily_forecast
 
     except Exception as exc:
         st.sidebar.warning(f"Weather API failed: {exc}")
@@ -799,7 +1279,9 @@ def fetch_recent_fire_features():
     pressure_values = []
     count_values = []
 
-    for offset in range(3):
+    # Current fire pressure plus the three prior days are required because the
+    # training feature fire_pressure_3day_avg excludes the current day.
+    for offset in range(4):
         date_str = (today - timedelta(days=offset)).strftime("%Y-%m-%d")
         daily = fetch_nasa_fire_for_date(date_str)
         if not daily.empty:
@@ -817,7 +1299,7 @@ def fetch_recent_fire_features():
     fire_pressure = round(pressure_values[0], 4)
     fire_pressure_lag1 = round(pressure_values[1], 4)
     fire_pressure_lag2 = round(pressure_values[2], 4)
-    fire_pressure_3day_avg = round(float(np.mean(pressure_values)), 4)
+    fire_pressure_3day_avg = round(float(np.mean(pressure_values[1:4])), 4)
 
     return {
         "hotspots": hotspots,
@@ -852,9 +1334,9 @@ def load_historical_data() -> pd.DataFrame:
 def build_fire_input(base_df: pd.DataFrame, fire_features: dict) -> pd.DataFrame:
     model_input = base_df.copy()
 
-    model_input["pm25_lag2"] = model_input["pm25_lag1"]
-    model_input["pm25_lag3"] = model_input["pm25_lag1"]
-    model_input["pm25_3Day_Avg"] = model_input["pm25_lag1"]
+    model_input["pm25_3Day_Avg"] = model_input[
+        ["pm25_lag1", "pm25_lag2", "pm25_lag3"]
+    ].mean(axis=1)
 
     model_input["Fire_Count"] = fire_features["fire_count"]
     model_input["Fire_Pressure"] = fire_features["fire_pressure"]
@@ -862,8 +1344,9 @@ def build_fire_input(base_df: pd.DataFrame, fire_features: dict) -> pd.DataFrame
     model_input["Fire_Pressure_Lag2"] = fire_features["fire_pressure_lag2"]
     model_input["Fire_Pressure_3Day_Avg"] = fire_features["fire_pressure_3day_avg"]
 
-    model_input["Month"] = datetime.now().month
-    model_input["Is_Burning_Season"] = 1 if datetime.now().month in [2, 3, 4, 5] else 0
+    forecast_month = pd.to_datetime(model_input["datetime"]).dt.month
+    model_input["Month"] = forecast_month
+    model_input["Is_Burning_Season"] = forecast_month.isin([1, 2, 3, 4]).astype(int)
 
     return model_input[FEATURE_COLS_18]
 
@@ -874,6 +1357,32 @@ def predict_log_model(model, input_df: pd.DataFrame) -> np.ndarray:
 
     raw_predictions = model.predict(input_df)
     return np.expm1(raw_predictions).clip(min=0)
+
+
+def predict_recursive_log_model(
+    model,
+    daily_base_input: pd.DataFrame,
+    fire_features: dict,
+    latest_pm25: float,
+) -> np.ndarray:
+    """Generate daily projections while advancing PM2.5 lag features."""
+    if model is None:
+        return np.zeros(len(daily_base_input))
+
+    lag_history = [float(latest_pm25)] * 3
+    predictions = []
+
+    for _, base_row in daily_base_input.iterrows():
+        one_day = pd.DataFrame([base_row.to_dict()])
+        one_day["pm25_lag1"] = lag_history[0]
+        one_day["pm25_lag2"] = lag_history[1]
+        one_day["pm25_lag3"] = lag_history[2]
+        model_input = build_fire_input(one_day, fire_features)
+        prediction = float(predict_log_model(model, model_input)[0])
+        predictions.append(prediction)
+        lag_history = [prediction, lag_history[0], lag_history[1]]
+
+    return np.asarray(predictions)
 
 
 def predict_raw_model(model, input_df: pd.DataFrame) -> np.ndarray:
@@ -906,7 +1415,7 @@ def make_gistda_map_html(hotspots: pd.DataFrame, current_pred: float, status_tex
         f"<div style='font-family:Inter,Arial,sans-serif; color:#0f172a; min-width:230px;'>"
         f"<div style='font-size:15px; font-weight:800; margin-bottom:6px;'>MFU Prediction Target</div>"
         f"<div><b>Area:</b> Mae Fah Luang University</div>"
-        f"<div><b>Predicted PM2.5:</b> {current_pred:.1f} &micro;g/m&sup3;</div>"
+        f"<div><b>Current modeled PM2.5:</b> {current_pred:.1f} &micro;g/m&sup3;</div>"
         f"<div><b>Status:</b> {status_icon} {status_text}</div>"
         f"<div><b>Model:</b> LightGBM Fire-Integrated</div>"
         f"<div style='margin-top:6px; color:#475569;'>The blue box marks the localized area represented by this prediction.</div>"
@@ -1025,10 +1534,10 @@ def make_gistda_map_html(hotspots: pd.DataFrame, current_pred: float, status_tex
 
 def generate_llm_warning(language: str, current_pred: float, max_pred: float, status_text: str, current_data: dict, fire_features: dict):
     if not GEMINI_API_KEY:
-        return "SETUP_REQUIRED::GEMINI_API_KEY is missing. Add GEMINI_API_KEY to .streamlit/secrets.toml before generating the advisory."
+        return "SETUP_REQUIRED::GEMINI_API_KEY is missing. Add GEMINI_API_KEY to .streamlit/secrets.toml before generating the advisory.", None
 
     if genai is None:
-        return "SETUP_REQUIRED::The google-generativeai package is not installed in this virtual environment. Install it with: python -m pip install google-generativeai"
+        return "SETUP_REQUIRED::The google-generativeai package is not installed in this virtual environment. Install it with: python -m pip install google-generativeai", None
 
     try:
         genai.configure(api_key=GEMINI_API_KEY)
@@ -1041,8 +1550,8 @@ Audience: university students, lecturers, staff, and visitors.
 Tone: calm, practical, readable, and not like a government order.
 
 Use only this data:
-- Current predicted PM2.5: {current_pred:.1f} µg/m³
-- Maximum predicted PM2.5 in the 5-day forecast: {max_pred:.1f} µg/m³
+- Current modeled PM2.5 estimate: {current_pred:.1f} µg/m³
+- Maximum predicted PM2.5 in the next 5-day forecast: {max_pred:.1f} µg/m³
 - Risk status: {status_text}
 - Temperature: {current_data.get("temp", 0):.1f} °C
 - Humidity: {current_data.get("humidity", 0):.1f}%
@@ -1083,17 +1592,17 @@ Rules:
                 model = genai.GenerativeModel(model_name)
                 response = model.generate_content(prompt)
                 if response.text:
-                    return response.text
+                    return response.text, model_name
             except Exception as e:
                 # If current model fails, record the error and continue to the next model in the list
                 last_error = e
                 continue
 
         # If ALL models in the list fail, only then return the error message
-        return f"AI_ERROR::AI generation failed across all fallback models. Last error: {last_error}"
+        return f"AI_ERROR::AI generation failed across all fallback models. Last error: {last_error}", None
 
     except Exception as exc:
-        return f"AI_ERROR::System error during AI generation setup: {exc}"
+        return f"AI_ERROR::System error during AI generation setup: {exc}", None
 
 
 
@@ -1108,6 +1617,12 @@ history_df = load_historical_data()
 
 if "ai_report" not in st.session_state:
     st.session_state.ai_report = ""
+if "ai_report_language" not in st.session_state:
+    st.session_state.ai_report_language = ""
+if "ai_report_model" not in st.session_state:
+    st.session_state.ai_report_model = ""
+if "ai_report_generated_at" not in st.session_state:
+    st.session_state.ai_report_generated_at = ""
 
 
 # =============================================================================
@@ -1116,15 +1631,14 @@ if "ai_report" not in st.session_state:
 
 # Using the official MFU logo URL provided by PT
 mfu_logo_url = "https://archives.mfu.ac.th/wp-content/uploads/2019/06/Mae-Fah-Luang-University-2.png"
-logo_html = f'<img src="{mfu_logo_url}" class="logo-img" style="max-height: 65px; width: auto; margin-right: 10px;">'
 
 st.markdown(
     f"""
-<div class="header-wrap">
-    {logo_html}
-    <div>
-        <h1 class="header-title">MFU PM2.5 GeoAI Warning Dashboard</h1>
-        <p class="header-subtitle">Chiang Rai localized prediction · NASA FIRMS fire monitoring · GISTDA spatial visualization · AI campus advisory</p>
+<div class="dashboard-header">
+    <img src="{mfu_logo_url}" alt="MFU Logo" class="dashboard-header-logo">
+    <div class="dashboard-header-content">
+        <h1>MFU PM2.5 GeoAI Warning Dashboard</h1>
+        <p>Chiang Rai localized prediction · NASA FIRMS fire monitoring · GISTDA spatial visualization · AI campus advisory</p>
     </div>
 </div>
 """,
@@ -1161,6 +1675,7 @@ pipeline_ready = current_data is not None and not forecast_df.empty and models["
 if pipeline_ready:
     base_input = forecast_df[
         [
+            "datetime",
             "Pressure_avg",
             "Temp_avg",
             "Humidity_avg",
@@ -1168,26 +1683,36 @@ if pipeline_ready:
             "Sunshine",
             "Wind_direct",
             "Wind_speed",
-            "pm25_lag1",
         ]
     ].copy()
 
-    fire_input = build_fire_input(base_input, fire_features)
-
-    forecast_df["lgbm_pm25"] = predict_log_model(models["lgbm_fire"], fire_input)
-    forecast_df["xgb_pm25"] = predict_log_model(models["xgb_fire"], fire_input)
+    forecast_df["lgbm_pm25"] = predict_recursive_log_model(
+        models["lgbm_fire"],
+        base_input,
+        fire_features,
+        current_data["pm25_current"],
+    )
+    forecast_df["xgb_pm25"] = predict_recursive_log_model(
+        models["xgb_fire"],
+        base_input,
+        fire_features,
+        current_data["pm25_current"],
+    )
 
     current_7 = base_input[FEATURE_COLS_7]
     forecast_df["svr_pm25"] = predict_raw_model(models["svr"], current_7)
     forecast_df["mlr_pm25"] = predict_raw_model(models["mlr"], current_7)
 
-    forecast_df["predicted_pm25"] = forecast_df["lgbm_pm25"].rolling(2, min_periods=1).mean()
+    forecast_df["predicted_pm25"] = forecast_df["lgbm_pm25"]
 
     current_pred = float(forecast_df.iloc[0]["predicted_pm25"])
-    max_pred = float(forecast_df["predicted_pm25"].max())
-    avg_pred = float(forecast_df["predicted_pm25"].mean())
+    future_forecast_df = forecast_df.iloc[1:6].copy()
+    forecast_scope = future_forecast_df if not future_forecast_df.empty else forecast_df
+    max_pred = float(forecast_scope["predicted_pm25"].max())
+    avg_pred = float(forecast_scope["predicted_pm25"].mean())
     status_text, status_color, status_icon = get_risk_label(current_pred)
 else:
+    future_forecast_df = pd.DataFrame()
     current_pred = 0.0
     max_pred = 0.0
     avg_pred = 0.0
@@ -1198,12 +1723,13 @@ else:
 # TABS
 # =============================================================================
 
-tab1, tab2, tab3, tab4 = st.tabs(
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
     [
         "🗺️ Prediction & Map",
         "🤖 AI Advisory(Gemini)",
         "📊 Charts & Graphs",
         "🔬 Model Overview",
+        "⚙️ System & Methodology",
     ]
 )
 
@@ -1229,13 +1755,13 @@ with tab1:
         📍 Mae Fah Luang University
     </div>
     <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 12px;">
-        <div style="font-size: 1.2rem; font-weight: 800; color: {TEXT_DARK};">Current PM2.5:</div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: {TEXT_DARK};">Current Modeled PM2.5:</div>
         <div style="font-size: 3rem; font-weight: 900; color: {status_color}; letter-spacing: -0.04em; line-height: 1;">
             {current_pred:.1f} <span style="font-size: 1.2rem; font-weight: 700;">µg/m³</span>
         </div>
     </div>
     <div style="margin-top: 12px; font-size: 0.95rem; color: {TEXT_DARK};">
-        Model: <strong>LightGBM (85.90% Fire-Integrated)</strong> &nbsp;|&nbsp; Status: <strong style="color: {status_color};">{status_text}</strong>
+        Model: <strong>LightGBM Fire-Integrated (R² = 0.859)</strong> &nbsp;|&nbsp; Status: <strong style="color: {status_color};">{status_text}</strong>
     </div>
 </div>
             """)
@@ -1281,16 +1807,20 @@ with tab1:
             # Forecast Line Chart
             st.markdown('<div class="section-title" style="margin-top: 0px; font-size: 1.15rem;">📈 5-Day PM2.5 Forecast Trend</div>', unsafe_allow_html=True)
             fig_forecast = px.line(
-                forecast_df,
+                future_forecast_df,
                 x="datetime",
                 y="predicted_pm25",
-                labels={"datetime": "Date/time", "predicted_pm25": "PM2.5 (µg/m³)"},
+                labels={"datetime": "Forecast date", "predicted_pm25": "PM2.5 (µg/m³)"},
             )
             fig_forecast.update_traces(line=dict(color=ROYAL_BLUE, width=3), mode="lines+markers", marker=dict(size=5))
             fig_forecast.add_hline(y=50, line_dash="dash", line_color=UNHEALTHY, annotation_text="Unhealthy threshold (50)")
             fig_forecast = apply_plot_style(fig_forecast, height=320)
             fig_forecast.update_layout(margin=dict(l=40, r=20, t=20, b=40))
             st.plotly_chart(fig_forecast, use_container_width=True, theme=None)
+            st.caption(
+                "Projection uses daily weather aggregates and assumes the current "
+                "NASA FIRMS fire conditions persist across the five-day horizon."
+            )
 
             # PM2.5 Level Guide
             render_html("""
@@ -1345,8 +1875,8 @@ with tab1:
             """)
 
             # 2. Forecast Summary (Daily Max)
-            forecast_df['Date_Str'] = forecast_df['datetime'].dt.strftime('%d %A')
-            daily_summary = forecast_df.groupby('Date_Str', sort=False)['predicted_pm25'].max().reset_index().head(5)
+            future_forecast_df['Date_Str'] = future_forecast_df['datetime'].dt.strftime('%d %A')
+            daily_summary = future_forecast_df.groupby('Date_Str', sort=False)['predicted_pm25'].max().reset_index().head(5)
             
             summary_html = ""
             for _, row in daily_summary.iterrows():
@@ -1379,14 +1909,6 @@ with tab1:
 # =============================================================================
 
 with tab2:
-    render_html(f"""
-    <div class="professional-card blue-card">
-        <h2 style="margin:0; color:{NAVY_BLUE}; letter-spacing:-0.035em;">AI campus advisory</h2>
-        <p style="margin:10px 0 0 0; color:{TEXT_MUTED}; font-weight:750; line-height:1.55;">
-            Generates a calm situational analysis for MFU students and staff using the live prediction, weather, wind, and fire monitoring data.
-        </p>
-    </div>
-    """)
 
     if not pipeline_ready:
         st.error("Prediction data is required before generating an advisory.")
@@ -1394,36 +1916,45 @@ with tab2:
         left, right = st.columns([0.82, 1.75], gap="large")
 
         with left:
+            active_model = st.session_state.get("ai_report_model", "")
+            if active_model:
+                escaped_model = html.escape(active_model)
+                ai_footer_text = f"AI model used: {escaped_model} · fallback enabled"
+            else:
+                ai_footer_text = "AI advisory: Gemini API · automatic fallback"
+
             render_html(f"""
-            <div class="professional-card" style="margin-top:18px;">
-                <div class="clean-label">Current PM2.5</div>
-                <div class="clean-value" style="font-size:2.4rem; color:{status_color};">{current_pred:.1f} µg/m³</div>
-                <div class="clean-subtext">{status_icon} {status_text} · max forecast {max_pred:.1f} µg/m³</div>
-                <hr style="border:0; border-top:1px solid {BORDER}; margin:18px 0;">
-                <div class="clean-label">Monitoring context</div>
-                <div style="color:{TEXT_DARK}; font-weight:850; line-height:1.75;">
-                    Weather: {current_data.get("desc", "Unknown")}<br>
-                    Wind: {current_data.get("wind_speed", 0):.1f} m/s at {current_data.get("wind_direction", 0):.0f}°<br>
-                    NASA hotspots: {fire_features["fire_count"]}<br>
-                    Model: gemini-3.1-flash-lite
+            <div style="width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.96); border: 1px solid #d7e0ea; border-left: 4px solid #1e3a8a; border-radius: 14px; padding: 18px 20px; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05); margin-top: 8px;">
+                <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em; color: #0f172a; text-transform: uppercase; margin-bottom: 8px;">
+                    CURRENT MODELED PM2.5
+                </div>
+                <div style="font-size: 2.35rem; font-weight: 750; line-height: 1.05; color: {status_color}; margin: 0 0 6px 0;">
+                    {current_pred:.1f} <span style="font-size: 1.15rem; font-weight: 600;">µg/m³</span>
+                </div>
+                <div style="font-size: 0.88rem; font-weight: 600; color: #475569; line-height: 1.35;">
+                    {status_icon} {status_text} · max forecast {max_pred:.1f} µg/m³
+                </div>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 16px 0 14px 0;">
+                <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em; color: #0f172a; text-transform: uppercase; margin-bottom: 10px;">
+                    MONITORING CONTEXT
+                </div>
+                <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; padding: 3px 0; font-size: 0.9rem; align-items: baseline;">
+                    <span style="color: #64748b; font-weight: 600;">Weather</span>
+                    <span style="color: #172033; font-weight: 500; word-break: break-word;">{current_data.get("desc", "Unknown")}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; padding: 3px 0; font-size: 0.9rem; align-items: baseline;">
+                    <span style="color: #64748b; font-weight: 600;">Wind</span>
+                    <span style="color: #172033; font-weight: 500; word-break: break-word;">{current_data.get("wind_speed", 0):.1f} m/s at {current_data.get("wind_direction", 0):.0f}°</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; padding: 3px 0; font-size: 0.9rem; align-items: baseline;">
+                    <span style="color: #64748b; font-weight: 600;">NASA hotspots</span>
+                    <span style="color: #172033; font-weight: 500; word-break: break-word;">{fire_features["fire_count"]}</span>
+                </div>
+                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; font-size: 0.82rem; color: #64748b; line-height: 1.45;">
+                    {ai_footer_text}
                 </div>
             </div>
             """)
-
-            # --- START OF UI FIX ---
-            st.markdown("""
-            <div style="background: #e2e8f0; padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: 750; color: #0f172a; font-size: 0.85rem; margin-bottom: 4px; margin-top: 18px; border: 1px solid #cbd5e1;">
-                🗣️ Output language
-            </div>
-            """, unsafe_allow_html=True)
-
-            language = st.selectbox(
-                "Hidden Label",
-                ["English", "Thai", "Burmese", "Chinese"],
-                index=1,
-                label_visibility="collapsed"
-            )
-            # --- END OF UI FIX ---
 
             if genai is None:
                 render_html("""
@@ -1433,47 +1964,96 @@ with tab2:
                 </div>
                 """)
 
-            if st.button("Generate campus advisory"):
-                with st.spinner(f"Generating advisory in {language}..."):
-                    st.session_state.ai_report = generate_llm_warning(
-                        language=language,
-                        current_pred=current_pred,
-                        max_pred=max_pred,
-                        status_text=status_text,
-                        current_data=current_data,
-                        fire_features=fire_features,
-                    )
-
         with right:
-            st.markdown('<div class="section-title" style="margin-top:18px;">Advisory output</div>', unsafe_allow_html=True)
-            if st.session_state.ai_report:
-                if st.session_state.ai_report.startswith("SETUP_REQUIRED::"):
-                    message = st.session_state.ai_report.replace("SETUP_REQUIRED::", "")
-                    render_html(f"""
-                    <div class="setup-card">
-                        <strong>Setup required</strong><br>{message}
-                    </div>
-                    """)
-                elif st.session_state.ai_report.startswith("AI_ERROR::"):
-                    message = st.session_state.ai_report.replace("AI_ERROR::", "")
-                    render_html(f"""
-                    <div class="setup-card">
-                        <strong>AI advisory could not be generated.</strong><br>{message}
-                    </div>
-                    """)
+            st.markdown('<div class="section-title" style="margin-top:8px;">Advisory output</div>', unsafe_allow_html=True)
+
+            # Language selector label (native, no pill)
+            st.markdown(
+                '<p style="margin:0 0 4px 0; font-size:0.85rem; font-weight:650; color:#475569;">Output language</p>',
+                unsafe_allow_html=True,
+            )
+
+            language = st.selectbox(
+                "Output language",
+                ["English", "Thai", "Burmese", "Chinese"],
+                index=1,
+                label_visibility="collapsed",
+                key="advisory_language_select",
+            )
+
+            generate_btn = st.button("Generate campus advisory", use_container_width=True, key="advisory_generate_btn")
+            advisory_slot = st.empty()
+
+            if generate_btn:
+                with advisory_slot.container():
+                    with st.container(key="advisory_loading_card"):
+                        with st.spinner("⏳ Just a moment — generating the campus advisory..."):
+                            report, model_used = generate_llm_warning(
+                                language=language,
+                                current_pred=current_pred,
+                                max_pred=max_pred,
+                                status_text=status_text,
+                                current_data=current_data,
+                                fire_features=fire_features,
+                            )
+                            st.session_state.ai_report = report
+                            if report and not (report.startswith("SETUP_REQUIRED::") or report.startswith("AI_ERROR::")):
+                                generated_at = datetime.now(ZoneInfo("Asia/Bangkok"))
+                                st.session_state.ai_report_model = model_used or ""
+                                st.session_state.ai_report_language = language
+                                st.session_state.ai_report_generated_at = generated_at.isoformat()
+                            else:
+                                st.session_state.ai_report_model = ""
+                                st.session_state.ai_report_language = ""
+                                st.session_state.ai_report_generated_at = ""
+                advisory_slot.empty()
+
+            with advisory_slot.container():
+                if st.session_state.ai_report:
+                    if st.session_state.ai_report.startswith("SETUP_REQUIRED::"):
+                        message = st.session_state.ai_report.replace("SETUP_REQUIRED::", "")
+                        render_html(f"""
+                        <div class="setup-card" style="margin-top: 1rem;">
+                            <strong>Setup required</strong><br>{message}
+                        </div>
+                        """)
+                    elif st.session_state.ai_report.startswith("AI_ERROR::"):
+                        message = st.session_state.ai_report.replace("AI_ERROR::", "")
+                        render_html(f"""
+                        <div class="setup-card" style="margin-top: 1rem;">
+                            <strong>AI advisory could not be generated.</strong><br>{message}
+                        </div>
+                        """)
+                    else:
+                        caption_parts = ["Generated campus advisory"]
+                        generated_language = st.session_state.get("ai_report_language", "")
+                        if generated_language:
+                            caption_parts.append(generated_language)
+
+                        gen_time_str = st.session_state.get("ai_report_generated_at")
+                        if gen_time_str:
+                            try:
+                                dt = datetime.fromisoformat(gen_time_str)
+                                hour = dt.strftime("%I").lstrip("0") or "12"
+                                formatted_ts = f"{dt.day} {dt.strftime('%B %Y')}, {hour}:{dt.strftime('%M %p')} ICT"
+                                caption_parts.append(formatted_ts)
+                            except Exception:
+                                pass
+
+                        generated_model = st.session_state.get("ai_report_model", "")
+                        if generated_model:
+                            caption_parts.append(f"Model: {generated_model}")
+
+                        caption_text = " · ".join(caption_parts)
+                        with st.container(key="advisory_output_card"):
+                            st.caption(caption_text)
+                            st.markdown(st.session_state.ai_report)
                 else:
-                    safe_report = st.session_state.ai_report.replace("\n", "<br>")
-                    render_html(f"""
-                    <div class="advisory-shell">
-                        {safe_report}
+                    render_html("""
+                    <div style="background: rgba(255, 255, 255, 0.96); border: 1px solid #d7e0ea; border-radius: 14px; padding: 1.25rem 1.4rem; margin-top: 1rem; color: #64748b; font-size: 0.95rem; line-height: 1.65; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);">
+                        Choose a language and click <strong>Generate campus advisory</strong>. The output will appear here as a readable situational analysis followed by practical recommendations.
                     </div>
                     """)
-            else:
-                render_html("""
-                <div class="advisory-shell" style="color:#64748b; font-weight:750;">
-                    Choose a language and click <strong>Generate campus advisory</strong>. The output will appear here as a readable situational analysis followed by practical recommendations.
-                </div>
-                """)
 
     st.markdown(FOOTER_HTML, unsafe_allow_html=True)
 
@@ -1483,17 +2063,13 @@ with tab2:
 # =============================================================================
 
 with tab3:
-    st.markdown(
-        f"""
-<div class="professional-card blue-card">
-    <h2 style="margin-top:0;color:{NAVY_BLUE};">Historical trends and fire-pressure analysis</h2>
-    <p style="color:{TEXT_MUTED};font-weight:700;line-height:1.55;">
-        Historical PM2.5 patterns, fire activity, weather relationships, and seasonal behavior for the Chiang Rai-focused dataset.
-    </p>
+    render_html("""
+<div class="chart-analysis-intro">
+    <h2>Historical trends and fire-pressure analysis</h2>
+    <p>Historical PM2.5 patterns, fire activity, weather relationships, and seasonal behavior for the Chiang Rai-focused dataset.</p>
 </div>
-""",
-        unsafe_allow_html=True,
-    )
+<div class="analysis-section-divider"></div>
+    """)
 
     if history_df.empty:
         st.warning("Historical dataset not found. Expected data/final/pm25_training_dataset_2018_2022.csv")
@@ -1532,6 +2108,8 @@ with tab3:
                 )
                 fig_scatter = apply_plot_style(fig_scatter, height=390)
                 st.plotly_chart(fig_scatter, use_container_width=True, theme=None)
+
+        render_html('<div class="chart-row-divider"></div>')
 
         c3, c4 = st.columns(2, gap="large")
 
@@ -1614,17 +2192,19 @@ with tab3:
 # =============================================================================
 
 with tab4:
-    st.markdown('<div class="section-title" style="font-size: 1.5rem; margin-bottom: 6px;">🥊 4-Model Defense Showdown</div>', unsafe_allow_html=True)
-    st.markdown('<p class="small-muted" style="margin-top:-10px; margin-bottom:24px;">Scientific justification for selecting LightGBM with Fire Factors over standard ML approaches.</p>', unsafe_allow_html=True)
+    render_html("""
+<div class="model-comparison-intro">
+    <h2>Model Comparison and Selection</h2>
+    <p>Comparison of four candidate models supporting the selection of fire-integrated LightGBM.</p>
+</div>
+    """)
 
     if pipeline_ready:
-        current_fire_input = fire_input.iloc[[0]]
-        current_weather_7 = base_input[FEATURE_COLS_7].iloc[[0]]
-
-        live_lgbm = predict_log_model(models["lgbm_fire"], current_fire_input)[0]
-        live_xgb = predict_log_model(models["xgb_fire"], current_fire_input)[0]
-        live_svr = predict_raw_model(models["svr"], current_weather_7)[0]
-        live_mlr = predict_raw_model(models["mlr"], current_weather_7)[0]
+        first_projection = forecast_df.iloc[0]
+        live_lgbm = float(first_projection["lgbm_pm25"])
+        live_xgb = float(first_projection["xgb_pm25"])
+        live_svr = float(first_projection["svr_pm25"])
+        live_mlr = float(first_projection["mlr_pm25"])
 
         # 1. Top Section: 2x2 Grid for 4 Models Showdown Cards
         r1_c1, r1_c2 = st.columns(2, gap="large")
@@ -1793,5 +2373,346 @@ with tab4:
 
     else:
         st.warning("Live model comparison is unavailable until the prediction pipeline is ready.")
+
+    st.markdown(FOOTER_HTML, unsafe_allow_html=True)
+
+
+# =============================================================================
+# TAB 5: SYSTEM & METHODOLOGY
+# =============================================================================
+
+with tab5:
+    render_html("""
+<div class="system-methodology-intro">
+<h2>System Architecture and Methodology</h2>
+<p>Technical workflow, data sources, feature engineering, model development, deployment, and decision-support components of the MFU PM2.5 GeoAI Warning Platform.</p>
+</div>
+<div class="analysis-section-divider"></div>
+
+<div class="system-section-heading">
+<h3>Platform purpose</h3>
+<p>This platform combines localized weather conditions, historical PM2.5 observations, NASA FIRMS fire activity, machine-learning estimation, spatial visualization, and multilingual AI-generated guidance to support air-quality awareness at Mae Fah Luang University.</p>
+</div>
+<div class="chart-row-divider"></div>
+
+<div class="system-section-heading">
+<h3>How the system works</h3>
+<p>A structural separation between offline model development and the live deployed prediction and advisory pipeline.</p>
+</div>
+
+<div class="pipeline-grid">
+<div class="pipeline-card">
+<h4>Model-development pipeline</h4>
+<div class="pipeline-step">
+<div class="pipeline-step-header">01 — Historical data acquisition</div>
+<div class="pipeline-step-desc">Historical PM2.5 observations, weather variables, and NASA FIRMS fire activity are collected for model development.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">02 — Daily alignment and validation</div>
+<div class="pipeline-step-desc">The sources are aligned to a common daily structure and checked according to the actual preprocessing implemented in the repository.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">03 — Feature engineering</div>
+<div class="pipeline-step-desc">Weather variables, PM2.5 lag features, temporal indicators, and fire-pressure features are prepared for model training.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">04 — Chronological evaluation</div>
+<div class="pipeline-step-desc">Evaluation follows a strict chronological split: training on 2018–2021 (1,455 daily observations) and holdout testing on 2022 (365 daily observations). Chronological separation eliminates future-to-past information leakage and accurately reflects real-world operational deployment.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">05 — Controlled model comparison</div>
+<div class="pipeline-step-desc">LightGBM and XGBoost are evaluated using weather-only and weather-plus-fire variants under identical train/test splits and target transformations.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">06 — Selected predictive model</div>
+<div class="pipeline-step-desc">The deployed numerical estimator uses the confirmed fire-integrated LightGBM model.</div>
+</div>
+</div>
+<div class="pipeline-card">
+<h4>Deployed prediction and advisory pipeline</h4>
+<div class="pipeline-step">
+<div class="pipeline-step-header">01 — Live contextual inputs</div>
+<div class="pipeline-step-desc">Collect the most recent available PM2.5 lag input, MFU-coordinate weather and wind information, and recent NASA FIRMS fire activity.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">02 — Feature alignment</div>
+<div class="pipeline-step-desc">Convert and aggregate live inputs so their units and daily semantics match the trained model features.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">03 — Current localized estimate</div>
+<div class="pipeline-step-desc">Generate the current model-based PM2.5 estimate for the MFU location. This is an engineered model estimate for the campus valley, not a direct on-campus physical sensor measurement.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">04 — Five-day daily scenario projection</div>
+<div class="pipeline-step-desc">Generate the following five daily values recursively by updating PM2.5 lag features with previous model outputs. This represents a daily scenario projection, not an official regulatory forecast.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">05 — Spatial and visual context</div>
+<div class="pipeline-step-desc">Present the prediction, weather, fire information, charts, and GISTDA spatial visualization in the Streamlit interface.</div>
+</div>
+<div class="pipeline-step-arrow">&darr;</div>
+<div class="pipeline-step">
+<div class="pipeline-step-header">06 — Multilingual campus advisory</div>
+<div class="pipeline-step-desc">Provide the structured prediction and environmental context to the Gemini API to generate practical guidance in the selected language. Gemini explains the model output; it does not calculate the numerical PM2.5 prediction.</div>
+</div>
+</div>
+</div>
+<div class="chart-row-divider"></div>
+
+<div class="system-section-heading">
+<h3>Model inputs and engineered factors</h3>
+<p>Eighteen confirmed input features categorized into autoregressive history, meteorology, temporal seasonality, and spatial fire pressure.</p>
+</div>
+
+<div class="methodology-table-container">
+<table class="methodology-table">
+<thead>
+<tr>
+<th style="width: 18%;">Category</th>
+<th style="width: 24%;">Engineered Feature</th>
+<th style="width: 28%;">Display Label & Semantics</th>
+<th style="width: 30%;">Operational Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="4" style="font-weight: 700; color: #1e3a8a; background: #fafcff;">PM2.5 History</td>
+<td><span class="methodology-code">pm25_lag1</span></td>
+<td>1-Day Prior PM2.5</td>
+<td>Previous day observed PM2.5 concentration (&micro;g/m&sup3;)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">pm25_lag2</span></td>
+<td>2-Day Prior PM2.5</td>
+<td>Two days prior observed PM2.5 concentration (&micro;g/m&sup3;)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">pm25_lag3</span></td>
+<td>3-Day Prior PM2.5</td>
+<td>Three days prior observed PM2.5 concentration (&micro;g/m&sup3;)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">pm25_3day_avg</span></td>
+<td>3-Day Moving Average</td>
+<td>Rolling 3-day arithmetic mean of antecedent PM2.5 values (&micro;g/m&sup3;)</td>
+</tr>
+<tr>
+<td rowspan="7" style="font-weight: 700; color: #1e3a8a; background: #fafcff;">Weather</td>
+<td><span class="methodology-code">pressure_avg</span></td>
+<td>Atmospheric Pressure</td>
+<td>Mean daily barometric surface pressure (hPa)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">temperature_avg</span></td>
+<td>Ambient Temperature</td>
+<td>Mean daily surface air temperature (&deg;C)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">humidity_avg</span></td>
+<td>Relative Humidity</td>
+<td>Mean daily relative atmospheric humidity (%)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">precipitation</span></td>
+<td>Daily Precipitation</td>
+<td>Total 24-hour liquid precipitation accumulation (mm)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">sunshine</span></td>
+<td>Sunshine Duration</td>
+<td>Estimated daily sunshine duration (hours, bounded at 12.4 h)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">wind_direction</span></td>
+<td>Wind Direction</td>
+<td>Circular vector mean compass wind direction (0&deg;&ndash;360&deg;)</td>
+</tr>
+<tr>
+<td><span class="methodology-code">wind_speed</span></td>
+<td>Wind Speed</td>
+<td>Mean daily horizontal wind velocity (km/h)</td>
+</tr>
+<tr>
+<td rowspan="2" style="font-weight: 700; color: #1e3a8a; background: #fafcff;">Temporal</td>
+<td><span class="methodology-code">month</span></td>
+<td>Calendar Month</td>
+<td>Month index (1&ndash;12) capturing broad annual meteorological seasonality</td>
+</tr>
+<tr>
+<td><span class="methodology-code">is_burning_season</span></td>
+<td>Burning Season Indicator</td>
+<td>Binary indicator (1 if month &isin; [January, February, March, April]; 0 otherwise)</td>
+</tr>
+<tr>
+<td rowspan="5" style="font-weight: 700; color: #1e3a8a; background: #fafcff;">Fire Activity</td>
+<td><span class="methodology-code">fire_count</span></td>
+<td>Active Fire Count</td>
+<td>Daily count of NASA FIRMS VIIRS hotspots detected within 100 km radius</td>
+</tr>
+<tr>
+<td><span class="methodology-code">fire_pressure</span></td>
+<td>Fire Pressure Index</td>
+<td>Inverse-square distance-decay weighted fire intensity: &sum; [brightness / (distance_km + 1)&sup2;]</td>
+</tr>
+<tr>
+<td><span class="methodology-code">fire_pressure_lag1</span></td>
+<td>1-Day Prior Fire Pressure</td>
+<td>Previous day spatial fire pressure index</td>
+</tr>
+<tr>
+<td><span class="methodology-code">fire_pressure_lag2</span></td>
+<td>2-Day Prior Fire Pressure</td>
+<td>Two days prior spatial fire pressure index</td>
+</tr>
+<tr>
+<td><span class="methodology-code">fire_pressure_3day_avg</span></td>
+<td>3-Day Moving Fire Pressure</td>
+<td>Rolling 3-day mean of the spatial fire pressure index</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<p style="font-size: 0.88rem; color: #526176; line-height: 1.55; margin: -10px 4px 24px 4px;">
+<strong>Methodological note:</strong> The burning-season indicator strictly follows the regional biomass burning definition (January through April). Features have varying predictive importance; non-linear boosting models place highest split importance on autoregressive PM2.5 lags and spatial fire-pressure metrics during high-pollution events.
+</p>
+<div class="chart-row-divider"></div>
+
+<div class="system-section-heading">
+<h3>Component responsibilities</h3>
+<p>Operational roles of each confirmed data source, computational engine, and presentation layer in the platform architecture.</p>
+</div>
+
+<div class="methodology-table-container">
+<table class="methodology-table">
+<thead>
+<tr>
+<th style="width: 25%;">Component</th>
+<th style="width: 75%;">Responsibility in System Architecture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="font-weight: 750; color: #0f172a;">Air4Thai (PCD)</td>
+<td>Provides official historical and recent ambient PM2.5 observations (station 73t, Chiang Rai) used as initial lag inputs by the model workflow. The displayed current MFU value is a localized model estimate, not a direct Air4Thai reading.</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #0f172a;">OpenWeather API</td>
+<td>Provides localized MFU-coordinate (20.0443&deg; N, 99.8924&deg; E) weather and wind inputs used by the deployed feature-building and 5-day daily aggregation engine.</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #0f172a;">NASA FIRMS</td>
+<td>Provides VIIRS active fire hotspot detections, brightness temperatures, and radiative power within 100 km of MFU, used to construct spatial fire-pressure metrics and map layers.</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #0f172a;">LightGBM</td>
+<td>Produces the numerical localized PM2.5 estimate and recursive daily scenario projections using the confirmed 18 engineered features.</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #0f172a;">XGBoost</td>
+<td>Serves as a comparison model in the controlled evaluation, confirming that gradient-boosted decision trees effectively capture non-linear pollution dynamics.</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #0f172a;">GISTDA Sphere API</td>
+<td>Provides spatial visualization and environmental context by rendering campus boundaries, distance buffers (25 km, 50 km, 100 km), wind vectors, and active hotspot positions. GISTDA does not directly train the PM2.5 model.</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #0f172a;">Gemini API</td>
+<td>Generates multilingual situational analysis and practical recommendations from structured model and environmental inputs. It explains the model output and does not calculate the numerical PM2.5 prediction.</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #0f172a;">Streamlit</td>
+<td>Integrates predictions, maps, charts, model evidence, and advisory output into the deployed user interface.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="chart-row-divider"></div>
+
+<div class="system-section-heading">
+<h3>Technology stack</h3>
+<p>Confirmed software libraries, frameworks, external APIs, and deployment infrastructure used in the repository.</p>
+</div>
+
+<div class="methodology-table-container">
+<table class="methodology-table">
+<thead>
+<tr>
+<th style="width: 25%;">Category</th>
+<th style="width: 75%;">Verified Technologies & Roles</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="font-weight: 750; color: #1e3a8a;">Application</td>
+<td>Python 3.10+ / 3.13, Streamlit (web framework), Joblib (model persistence)</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #1e3a8a;">Data processing</td>
+<td>Pandas (daily aggregation and lag generation), NumPy (circular trigonometry and vector math), Requests (HTTP client for live external services)</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #1e3a8a;">Machine learning</td>
+<td>LightGBM (champion LGBMRegressor), XGBoost (comparison XGBRegressor), scikit-learn (SVR, Linear Regression, evaluation metrics)</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #1e3a8a;">Visualization</td>
+<td>Plotly (Plotly Graph Objects & Express for historical and forecast charts), GISTDA Sphere API (interactive campus JavaScript map)</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #1e3a8a;">External data services</td>
+<td>OpenWeather API (current & forecast weather), NASA FIRMS Area API (VIIRS fire detections), Air4Thai API (ambient station 73t)</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #1e3a8a;">Generative AI</td>
+<td>Gemini API (<span class="methodology-code">google-generativeai</span> SDK with automatic candidate fallback sequence)</td>
+</tr>
+<tr>
+<td style="font-weight: 750; color: #1e3a8a;">Deployment</td>
+<td>Streamlit Community Cloud (managed hosting with <span class="methodology-code">.streamlit/secrets.toml</span> configuration)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="chart-row-divider"></div>
+""")
+
+    st.markdown('<div class="system-section-heading"><h3>Methodological notes</h3><p>Key technical rationale and constraints for committee defense and academic presentation.</p></div>', unsafe_allow_html=True)
+
+    with st.container(key="methodology_notes_expanders"):
+        with st.expander("What does “Current Modeled PM2.5” mean?", expanded=False):
+            st.markdown(
+                "The displayed current value is a localized model-based estimate generated using the most recent available PM2.5 lag information together with MFU-coordinate weather, wind, temporal, and fire-related inputs. It is not a direct Air4Thai display value and is not an on-campus regulatory sensor measurement."
+            )
+
+        with st.expander("Why were NASA fire factors included?", expanded=False):
+            st.markdown(
+                "Weather-only models may not fully represent pollution behavior during the northern Thailand burning season. NASA FIRMS-derived features were therefore evaluated through a controlled ablation study comparing weather-only and weather-plus-fire variants.\n\n"
+                "Fire-related features allow the non-linear boosting models to account for regional biomass burning pressure that local meteorological sensors cannot detect. The measured evidence is detailed in the Model Overview tab."
+            )
+
+        with st.expander("Why use chronological holdout testing?", expanded=False):
+            st.markdown(
+                "The model is trained on earlier dates (2018–2021) and evaluated on the later 2022 period. This better represents future deployment and reduces the risk of information from the future leaking into model training, unlike random cross-validation which allows future observations to inform past predictions."
+            )
+
+        with st.expander("What are the limitations of the five-day projection?", expanded=False):
+            st.markdown(
+                "The five-day values are daily scenario projections based on forecast environmental inputs and recursive PM2.5 lag updates. Uncertainty can accumulate across later days, and the output should not be presented as an official regulatory forecast."
+            )
+
+        with st.expander("What role does generative AI play?", expanded=False):
+            st.markdown(
+                "The Gemini component receives structured prediction, weather, wind, and fire context and converts it into readable multilingual guidance. It does not alter or calculate the numerical PM2.5 model output. The application uses a model fallback sequence for service resilience."
+            )
 
     st.markdown(FOOTER_HTML, unsafe_allow_html=True)

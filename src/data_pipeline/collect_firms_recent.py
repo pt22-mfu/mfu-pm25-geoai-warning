@@ -275,12 +275,13 @@ def calculate_average_brightness(nearby_df: pd.DataFrame) -> float:
 
 def calculate_fire_pressure(nearby_df: pd.DataFrame) -> float:
     """
-    Calculate fire pressure based on distance.
+    Calculate fire pressure using the historical training-data formula.
 
-    Nearby fires contribute more pressure than distant fires.
+    Brighter and nearer fires contribute more pressure than dimmer or more
+    distant fires.
 
     Formula:
-        fire_pressure = sum(1 / (distance_km + 1))
+        fire_pressure = sum(brightness / (distance_km + 1)^2)
 
     Args:
         nearby_df: Nearby fire detection DataFrame.
@@ -291,7 +292,22 @@ def calculate_fire_pressure(nearby_df: pd.DataFrame) -> float:
     if nearby_df.empty:
         return 0.0
 
-    fire_pressure_components = 1 / (nearby_df["distance_km"] + 1)
+    brightness_column = next(
+        (
+            column
+            for column in ("bright_ti4", "brightness", "bright_t31")
+            if column in nearby_df.columns
+        ),
+        None,
+    )
+    if brightness_column is None:
+        return 0.0
+
+    brightness = pd.to_numeric(
+        nearby_df[brightness_column],
+        errors="coerce",
+    ).fillna(0.0)
+    fire_pressure_components = brightness / ((nearby_df["distance_km"] + 1) ** 2)
 
     return float(fire_pressure_components.sum())
 
