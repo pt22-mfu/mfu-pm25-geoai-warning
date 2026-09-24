@@ -116,63 +116,6 @@ html, body, [class*="css"] {{
     font-weight: 900 !important;
     letter-spacing: -0.04em;
 }}
-
-.stTabs div[data-baseweb="tab-list"] {{
-    gap: 8px !important;
-    padding: 8px !important;
-    background: rgba(255, 255, 255, 0.96) !important;
-    border: 1px solid #d7e0ea !important;
-    border-radius: 16px !important;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
-    overflow-x: auto !important;
-}}
-
-.stTabs button[data-baseweb="tab"] {{
-    background: transparent !important;
-    color: #334155 !important;
-    border: 0 !important;
-    border-radius: 11px !important;
-    padding: 0.72rem 1rem !important;
-    font-weight: 600 !important;
-    white-space: nowrap !important;
-}}
-
-.stTabs button[data-baseweb="tab"] p,
-.stTabs button[data-baseweb="tab"] span,
-.stTabs button[data-baseweb="tab"] div {{
-    color: inherit !important;
-}}
-
-.stTabs button[data-baseweb="tab"]:hover {{
-    background: #f1f5f9 !important;
-    color: #1e3a8a !important;
-}}
-
-.stTabs button[data-baseweb="tab"][aria-selected="true"] {{
-    background: #1e3a8a !important;
-    color: #ffffff !important;
-    box-shadow: 0 3px 8px rgba(30, 58, 138, 0.18) !important;
-}}
-
-.stTabs button[data-baseweb="tab"][aria-selected="true"] p,
-.stTabs button[data-baseweb="tab"][aria-selected="true"] span,
-.stTabs button[data-baseweb="tab"][aria-selected="true"] div {{
-    color: #ffffff !important;
-}}
-
-.stTabs button[data-baseweb="tab"]:focus-visible {{
-    outline: 2px solid #60a5fa !important;
-    outline-offset: 2px !important;
-}}
-
-.stTabs div[data-baseweb="tab-highlight"] {{
-    background-color: transparent !important;
-}}
-
-.stTabs div[data-baseweb="tab-border"] {{
-    background-color: transparent !important;
-}}
-
 /* Force Streamlit widget labels (like selectbox) to remain dark and readable */
 div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] label {{
     color: {TEXT_DARK} !important;
@@ -873,6 +816,77 @@ div.st-key-advisory_loading_card {{
     .clean-factor-grid {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }}
+}}
+
+/* =============================================================================
+   Streamlit Tab Navigation Styling (Theme-Independent & High-Contrast)
+   Targets semantic roles ([role="..."]) and BaseWeb attributes for compatibility.
+   Placed at the end of the stylesheet to ensure cascade precedence.
+   ============================================================================= */
+.stTabs [role="tablist"],
+.stTabs div[data-baseweb="tab-list"] {{
+    gap: 8px !important;
+    padding: 8px !important;
+    background: #ffffff !important;
+    border: 1px solid #d7e0ea !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    overflow-x: auto !important;
+}}
+
+.stTabs [role="tab"],
+.stTabs button[data-baseweb="tab"] {{
+    background: transparent !important;
+    color: #334155 !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    padding: 0.72rem 1rem !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+}}
+
+.stTabs [role="tab"] *,
+.stTabs button[data-baseweb="tab"] * {{
+    color: inherit !important;
+}}
+
+.stTabs [role="tab"]:hover,
+.stTabs button[data-baseweb="tab"]:hover {{
+    background: #f1f5f9 !important;
+    color: #1e3a8a !important;
+}}
+
+.stTabs [role="tab"]:hover *,
+.stTabs button[data-baseweb="tab"]:hover * {{
+    color: #1e3a8a !important;
+}}
+
+.stTabs [role="tab"][aria-selected="true"],
+.stTabs button[data-baseweb="tab"][aria-selected="true"] {{
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 8px rgba(30, 58, 138, 0.18) !important;
+}}
+
+.stTabs [role="tab"][aria-selected="true"] *,
+.stTabs button[data-baseweb="tab"][aria-selected="true"] * {{
+    color: #ffffff !important;
+}}
+
+.stTabs [role="tab"]:focus-visible,
+.stTabs button[data-baseweb="tab"]:focus-visible {{
+    outline: 2px solid #60a5fa !important;
+    outline-offset: 2px !important;
+}}
+
+.stTabs [data-baseweb="tab-highlight"],
+.stTabs div[data-baseweb="tab-highlight"] {{
+    background-color: transparent !important;
+}}
+
+.stTabs [data-baseweb="tab-border"],
+.stTabs div[data-baseweb="tab-border"] {{
+    background-color: transparent !important;
 }}
 
 </style>
