@@ -18,8 +18,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 try:
-    import google.generativeai as genai
-except Exception:
+    from google import genai
+except ImportError:
     genai = None
 
 
@@ -1537,10 +1537,10 @@ def generate_llm_warning(language: str, current_pred: float, max_pred: float, st
         return "SETUP_REQUIRED::GEMINI_API_KEY is missing. Add GEMINI_API_KEY to .streamlit/secrets.toml before generating the advisory.", None
 
     if genai is None:
-        return "SETUP_REQUIRED::The google-generativeai package is not installed in this virtual environment. Install it with: python -m pip install google-generativeai", None
+        return "SETUP_REQUIRED::The google-genai package is not installed in this virtual environment. Install it with: python -m pip install google-genai", None
 
     try:
-        genai.configure(api_key=GEMINI_API_KEY)
+        client = genai.Client(api_key=GEMINI_API_KEY)
         
         prompt = f"""
 You are an environmental health advisory assistant for Mae Fah Luang University (MFU) in Chiang Rai, Thailand.
@@ -1589,10 +1589,13 @@ Rules:
         last_error = None
         for model_name in fallback_models:
             try:
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content(prompt)
-                if response.text:
-                    return response.text, model_name
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+                response_text = getattr(response, "text", "") or ""
+                if response_text.strip():
+                    return response_text.strip(), model_name
             except Exception as e:
                 # If current model fails, record the error and continue to the next model in the list
                 last_error = e
@@ -1816,7 +1819,7 @@ with tab1:
             fig_forecast.add_hline(y=50, line_dash="dash", line_color=UNHEALTHY, annotation_text="Unhealthy threshold (50)")
             fig_forecast = apply_plot_style(fig_forecast, height=320)
             fig_forecast.update_layout(margin=dict(l=40, r=20, t=20, b=40))
-            st.plotly_chart(fig_forecast, use_container_width=True, theme=None)
+            st.plotly_chart(fig_forecast, width="stretch", theme=None)
             st.caption(
                 "Projection uses daily weather aggregates and assumes the current "
                 "NASA FIRMS fire conditions persist across the five-day horizon."
@@ -1959,8 +1962,8 @@ with tab2:
             if genai is None:
                 render_html("""
                 <div class="setup-card">
-                    Gemini advisory is not ready in this virtual environment because <code>google-generativeai</code> is not installed.<br>
-                    Install command:<br><code>python -m pip install google-generativeai</code>
+                    Gemini advisory is not ready in this virtual environment because <code>google-genai</code> is not installed.<br>
+                    Install command:<br><code>python -m pip install google-genai</code>
                 </div>
                 """)
 
@@ -1981,7 +1984,7 @@ with tab2:
                 key="advisory_language_select",
             )
 
-            generate_btn = st.button("Generate campus advisory", use_container_width=True, key="advisory_generate_btn")
+            generate_btn = st.button("Generate campus advisory", width="stretch", key="advisory_generate_btn")
             advisory_slot = st.empty()
 
             if generate_btn:
@@ -2089,7 +2092,7 @@ with tab3:
                 )
                 fig_hist.update_traces(line=dict(color=ROYAL_BLUE, width=3))
                 fig_hist = apply_plot_style(fig_hist, height=390)
-                st.plotly_chart(fig_hist, use_container_width=True, theme=None)
+                st.plotly_chart(fig_hist, width="stretch", theme=None)
 
         with c2:
             if {"Temp_avg", "PM25", "Humidity_avg"}.issubset(history_df.columns):
@@ -2107,7 +2110,7 @@ with tab3:
                     color_continuous_scale="Blues",
                 )
                 fig_scatter = apply_plot_style(fig_scatter, height=390)
-                st.plotly_chart(fig_scatter, use_container_width=True, theme=None)
+                st.plotly_chart(fig_scatter, width="stretch", theme=None)
 
         render_html('<div class="chart-row-divider"></div>')
 
@@ -2124,7 +2127,7 @@ with tab3:
                 )
                 fig_fire_count.update_traces(marker_color=NAVY_BLUE)
                 fig_fire_count = apply_plot_style(fig_fire_count, height=380)
-                st.plotly_chart(fig_fire_count, use_container_width=True, theme=None)
+                st.plotly_chart(fig_fire_count, width="stretch", theme=None)
 
         with c4:
             if {"Date", "Fire_Pressure"}.issubset(history_df.columns):
@@ -2137,7 +2140,7 @@ with tab3:
                 )
                 fig_fire_pressure.update_traces(line=dict(color=UNHEALTHY, width=2.5))
                 fig_fire_pressure = apply_plot_style(fig_fire_pressure, height=380)
-                st.plotly_chart(fig_fire_pressure, use_container_width=True, theme=None)
+                st.plotly_chart(fig_fire_pressure, width="stretch", theme=None)
 
         if {"Date", "PM25", "Fire_Pressure"}.issubset(history_df.columns):
             st.markdown('<div class="section-title">PM2.5 and fire pressure combined view</div>', unsafe_allow_html=True)
@@ -2165,7 +2168,7 @@ with tab3:
                 yaxis2=dict(title="Fire pressure", overlaying="y", side="right"),
             )
             fig_combined = apply_plot_style(fig_combined, height=430)
-            st.plotly_chart(fig_combined, use_container_width=True, theme=None)
+            st.plotly_chart(fig_combined, width="stretch", theme=None)
 
         if {"Month", "PM25"}.issubset(history_df.columns):
             monthly = (
@@ -2182,7 +2185,7 @@ with tab3:
             )
             fig_month.update_traces(marker_color=ROYAL_BLUE)
             fig_month = apply_plot_style(fig_month, height=380)
-            st.plotly_chart(fig_month, use_container_width=True, theme=None)
+            st.plotly_chart(fig_month, width="stretch", theme=None)
 
     st.markdown(FOOTER_HTML, unsafe_allow_html=True)
 
@@ -2285,7 +2288,7 @@ with tab4:
             )
             fig_r2 = apply_plot_style(fig_r2, height=380)
             fig_r2.update_layout(margin=dict(l=40, r=20, t=60, b=40))
-            st.plotly_chart(fig_r2, use_container_width=True, theme=None)
+            st.plotly_chart(fig_r2, width="stretch", theme=None)
 
             # Text Table: Accuracy Metrics
             render_html(f"""
@@ -2331,7 +2334,7 @@ with tab4:
             )
             fig_mae = apply_plot_style(fig_mae, height=380)
             fig_mae.update_layout(margin=dict(l=40, r=20, t=60, b=40))
-            st.plotly_chart(fig_mae, use_container_width=True, theme=None)
+            st.plotly_chart(fig_mae, width="stretch", theme=None)
 
             # Text Table: Error Metrics
             render_html(f"""
@@ -2674,7 +2677,7 @@ with tab5:
 </tr>
 <tr>
 <td style="font-weight: 750; color: #1e3a8a;">Generative AI</td>
-<td>Gemini API (<span class="methodology-code">google-generativeai</span> SDK with automatic candidate fallback sequence)</td>
+<td>Gemini API (<span class="methodology-code">Google GenAI SDK</span> with automatic candidate fallback sequence)</td>
 </tr>
 <tr>
 <td style="font-weight: 750; color: #1e3a8a;">Deployment</td>
