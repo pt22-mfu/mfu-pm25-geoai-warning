@@ -117,30 +117,60 @@ html, body, [class*="css"] {{
     letter-spacing: -0.04em;
 }}
 
-.stTabs [data-baseweb="tab-list"] {{
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid {BORDER};
-    border-radius: 14px;
-    padding: 7px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
+.stTabs div[data-baseweb="tab-list"] {{
+    gap: 8px !important;
+    padding: 8px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid #d7e0ea !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    overflow-x: auto !important;
 }}
 
-.stTabs [data-baseweb="tab"] {{
-    border-radius: 10px;
-    padding: 0.66rem 1rem;
-    font-weight: 800;
-    color: {TEXT_MUTED};
+.stTabs button[data-baseweb="tab"] {{
+    background: transparent !important;
+    color: #334155 !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    padding: 0.72rem 1rem !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
 }}
 
-.stTabs [data-baseweb="tab"][aria-selected="true"] {{
-    background: linear-gradient(135deg, {NAVY_BLUE}, {ROYAL_BLUE});
-    color: white !important;
-    box-shadow: 0 7px 16px rgba(30, 58, 138, 0.18);
+.stTabs button[data-baseweb="tab"] p,
+.stTabs button[data-baseweb="tab"] span,
+.stTabs button[data-baseweb="tab"] div {{
+    color: inherit !important;
 }}
 
-.stTabs [data-baseweb="tab"][aria-selected="true"] p {{
-    color: white !important;
+.stTabs button[data-baseweb="tab"]:hover {{
+    background: #f1f5f9 !important;
+    color: #1e3a8a !important;
+}}
+
+.stTabs button[data-baseweb="tab"][aria-selected="true"] {{
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 8px rgba(30, 58, 138, 0.18) !important;
+}}
+
+.stTabs button[data-baseweb="tab"][aria-selected="true"] p,
+.stTabs button[data-baseweb="tab"][aria-selected="true"] span,
+.stTabs button[data-baseweb="tab"][aria-selected="true"] div {{
+    color: #ffffff !important;
+}}
+
+.stTabs button[data-baseweb="tab"]:focus-visible {{
+    outline: 2px solid #60a5fa !important;
+    outline-offset: 2px !important;
+}}
+
+.stTabs div[data-baseweb="tab-highlight"] {{
+    background-color: transparent !important;
+}}
+
+.stTabs div[data-baseweb="tab-border"] {{
+    background-color: transparent !important;
 }}
 
 /* Force Streamlit widget labels (like selectbox) to remain dark and readable */
