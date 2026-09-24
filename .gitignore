@@ -8,4 +8,12 @@ data/raw/
 data/processed/
 data/final/
 models/
-reports/
+reports/*
+!reports/ablation/
+reports/ablation/*
+!reports/ablation/ablation_metrics.csv
+!reports/ablation/ablation_summary.csv
+!reports/ablation/experiment_config.json
+!reports/ablation/ablation_mae_comparison.png
+!reports/ablation/ablation_rmse_comparison.png
+!reports/ablation/high_pm25_predictions.png
