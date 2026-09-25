@@ -15,7 +15,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import requests
 import streamlit as st
-import streamlit.components.v1 as components
 
 try:
     from google import genai
@@ -1841,7 +1840,7 @@ with tab1:
             current_data.get("wind_direction", 0),
         )
         if map_html:
-            components.html(map_html, height=520, scrolling=False)
+            st.iframe(map_html, width="stretch", height=520)
         else:
             st.warning("GISTDA_KEY is missing. Map cannot be displayed.")
 
