@@ -1800,14 +1800,17 @@ with tab1:
     <div style="font-size: 0.8rem; font-weight: 800; color: {TEXT_MUTED}; letter-spacing: 0.05em; text-transform: uppercase;">
         📍 Mae Fah Luang University
     </div>
-    <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 12px;">
-        <div style="font-size: 1.2rem; font-weight: 800; color: {TEXT_DARK};">Current Modeled PM2.5:</div>
-        <div style="font-size: 3rem; font-weight: 900; color: {status_color}; letter-spacing: -0.04em; line-height: 1;">
+    <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 8px;">
+        <div style="font-size: 1.2rem; font-weight: 800; color: {TEXT_DARK};">Current PM2.5 estimate:</div>
+        <div style="font-size: 2.85rem; font-weight: 900; color: {status_color}; letter-spacing: -0.04em; line-height: 1;">
             {current_pred:.1f} <span style="font-size: 1.2rem; font-weight: 700;">µg/m³</span>
         </div>
     </div>
-    <div style="margin-top: 12px; font-size: 0.95rem; color: {TEXT_DARK};">
-        Model: <strong>LightGBM Fire-Integrated (R² = 0.859)</strong> &nbsp;|&nbsp; Status: <strong style="color: {status_color};">{status_text}</strong>
+    <div style="margin-top: 8px; font-size: 0.95rem; color: {TEXT_DARK};">
+        Air quality: <strong style="color: {status_color};">{status_text}</strong>
+    </div>
+    <div style="margin-top: 4px; font-size: 0.8rem; color: {TEXT_MUTED};">
+        Estimated using recent air quality, weather, and nearby fire conditions.
     </div>
 </div>
             """)
@@ -1859,9 +1862,15 @@ with tab1:
                 labels={"datetime": "Forecast date", "predicted_pm25": "PM2.5 (µg/m³)"},
             )
             fig_forecast.update_traces(line=dict(color=ROYAL_BLUE, width=3), mode="lines+markers", marker=dict(size=5))
-            fig_forecast.add_hline(y=50, line_dash="dash", line_color=UNHEALTHY, annotation_text="Unhealthy threshold (50)")
+            fig_forecast.add_hline(
+                y=50,
+                line_dash="dash",
+                line_color=UNHEALTHY,
+                annotation_text="Unhealthy threshold (50)",
+                annotation_position="top left",
+            )
             fig_forecast = apply_plot_style(fig_forecast, height=320)
-            fig_forecast.update_layout(margin=dict(l=40, r=20, t=20, b=40))
+            fig_forecast.update_layout(xaxis_title=None, margin=dict(l=40, r=20, t=20, b=40))
             st.plotly_chart(fig_forecast, width="stretch", theme=None)
             st.caption(
                 "Projection uses daily weather aggregates and assumes the current "
@@ -1972,7 +1981,7 @@ with tab2:
             render_html(f"""
             <div style="width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.96); border: 1px solid #d7e0ea; border-left: 4px solid #1e3a8a; border-radius: 14px; padding: 18px 20px; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05); margin-top: 8px;">
                 <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.07em; color: #0f172a; text-transform: uppercase; margin-bottom: 8px;">
-                    CURRENT MODELED PM2.5
+                    Current PM2.5 estimate
                 </div>
                 <div style="font-size: 2.35rem; font-weight: 750; line-height: 1.05; color: {status_color}; margin: 0 0 6px 0;">
                     {current_pred:.1f} <span style="font-size: 1.15rem; font-weight: 600;">µg/m³</span>
