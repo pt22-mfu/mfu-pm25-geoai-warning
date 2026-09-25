@@ -749,19 +749,47 @@ a {{
 }}
 
 /* Scoped: white dropdown only for the advisory language selector */
-div.st-key-advisory_language_select div[data-baseweb="select"] > div {{
+/* Closed select control permanently visible in idle state */
+div.st-key-advisory_language_select div[data-baseweb="select"] > div,
+div.st-key-advisory_language_select div[role="group"],
+div.st-key-advisory_language_select .stSelectbox > div {{
     background-color: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 10px !important;
+    min-height: 48px !important;
     color: #0f172a !important;
     box-shadow: none !important;
 }}
 
-div.st-key-advisory_language_select div[data-baseweb="select"] span {{
+/* Preserve clear hover state */
+div.st-key-advisory_language_select div[data-baseweb="select"] > div:hover,
+div.st-key-advisory_language_select div[role="group"]:hover,
+div.st-key-advisory_language_select .stSelectbox > div:hover,
+div.st-key-advisory_language_select div[role="group"][data-hovered] {{
+    border-color: #94a3b8 !important;
+}}
+
+/* Preserve blue focus border */
+div.st-key-advisory_language_select div[data-baseweb="select"] > div:focus-within,
+div.st-key-advisory_language_select div[role="group"]:focus-within,
+div.st-key-advisory_language_select .stSelectbox > div:focus-within,
+div.st-key-advisory_language_select div[role="group"][data-focus-within] {{
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 1px #2563eb !important;
+}}
+
+/* Text styling across Streamlit versions */
+div.st-key-advisory_language_select div[data-baseweb="select"] span,
+div.st-key-advisory_language_select div[data-baseweb="select"] div,
+div.st-key-advisory_language_select div[role="group"] input,
+div.st-key-advisory_language_select input {{
     color: #0f172a !important;
 }}
 
-div.st-key-advisory_language_select div[data-baseweb="select"] svg {{
+/* Ensure dropdown arrow remains visible */
+div.st-key-advisory_language_select div[data-baseweb="select"] svg,
+div.st-key-advisory_language_select div[role="group"] svg,
+div.st-key-advisory_language_select svg {{
     color: #475569 !important;
     fill: #475569 !important;
 }}
